@@ -9,7 +9,6 @@ import { Copy, Check } from "lucide-react";
 import { Message } from "@/types";
 import { GeminiLogo, GeminiLogoStatic } from "@/components/layout/GeminiLogo";
 
-/* Inject once */
 const STYLES = `
 @keyframes msg-in {
   from { opacity: 0; transform: translateY(6px); }
@@ -35,10 +34,7 @@ function CopyBtn({ text }: { text: string }) {
   );
 }
 
-/* Wrap streaming content so new chunks fade in smoothly */
 function StreamContent({ content, isStreaming }: { content: string; isStreaming?: boolean }) {
-  /* We keep a "committed" part and a "new" part.
-     Every time content grows, the new suffix gets a fresh fade-in. */
   const prevLen = useRef(0);
   const [committed, setCommitted] = useState("");
   const [incoming, setIncoming]   = useState("");
@@ -97,7 +93,7 @@ export function MessageBubble({ message }: { message: Message }) {
 
   const loading = message.isStreaming && !message.content;
 
-  /* ── User ── */
+
   if (message.role === "user") return (
     <div className="flex justify-end msg-enter">
       <div className="max-w-[78%] px-4 py-3 rounded-2xl rounded-tr-sm bg-[hsl(0,0%,17%)] border border-[hsl(0,0%,23%)] text-sm leading-relaxed">
@@ -106,7 +102,7 @@ export function MessageBubble({ message }: { message: Message }) {
     </div>
   );
 
-  /* ── Assistant ── */
+ 
   return (
     <div className="flex gap-3 msg-enter">
       <div className="shrink-0 mt-1">

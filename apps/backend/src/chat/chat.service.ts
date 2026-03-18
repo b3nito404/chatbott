@@ -1,46 +1,36 @@
-import { Injectable, InternalServerErrorException } from '@nestjs/common';
+import { Injectable } from '@nestjs/common';
+import { GoogleGenerativeAI } from '@google/generative-ai';
 import { ConfigService } from '@nestjs/config';
-import { GoogleGenerativeAI, HarmCategory, HarmBlockThreshold } from '@google/generative-ai';
-import { SendMessageDto } from './dto/chat.dto';
 
 @Injectable()
 export class ChatService {
   private genAI: GoogleGenerativeAI;
 
-  constructor(private configService: ConfigService) {
-    const apiKey = this.configService.get<string>('GEMINI_API_KEY');
-    if (!apiKey) throw new Error('GEMINI_API_KEY manquant dans .env');
-    this.genAI = new GoogleGenerativeAI(apiKey);
+  constructor(private config: ConfigService) {
+    this.genAI = new GoogleGenerativeAI(
+      this.config.get<string>('GEMINI_API_KEY') ?? '',
+    );
   }
 
-  private getModel() {
-    return this.genAI.getGenerativeModel({
-      model: 'gemini-2.5-flash',
-      safetySettings: [
-        { category: HarmCategory.HARM_CATEGORY_HARASSMENT,  threshold: HarmBlockThreshold.BLOCK_MEDIUM_AND_ABOVE },
-        { category: HarmCategory.HARM_CATEGORY_HATE_SPEECH, threshold: HarmBlockThreshold.BLOCK_MEDIUM_AND_ABOVE },
-      ],
-      systemInstruction: `Tu es un assistant IA intelligent, précis et utile.
-Tu réponds de manière claire, structurée et concise.
-Tu utilises du markdown pour formater tes réponses quand c'est pertinent; et tu reponds selon 
-la langue dans laquelle les questions te sont posées` ,
-    });
+
+  async complete(prompt: string): Promise<string> {
+    const model  = this.genAI.getGenerativeModel({ model: 'gemini-2.5-flash' });
+    const result = await model.generateContent(prompt);
+    return result.response.text();
   }
 
-  async streamMessage(dto: SendMessageDto) {
-    try {
-      const history = (dto.history || []).map(m => ({
-        role: m.role === 'assistant' ? 'model' : 'user',
-        parts: [{ text: m.content }],
-      }));
-      const result = await this.getModel().startChat({ history }).sendMessageStream(dto.message);
-      return result.stream;
-    } catch (err) {
-      throw new InternalServerErrorException('Gemini error: ' + err.message);
+  
+  async *streamChat(
+    message: string,
+    history: Array<{ role: 'user' | 'model'; parts: Array<{ text: string }> }>,
+  ): AsyncGenerator<string> {
+    const model  = this.genAI.getGenerativeModel({ model: 'gemini-2.5-flash' });
+    const chat   = model.startChat({ history });
+    const result = await chat.sendMessageStream(message);
+
+    for await (const chunk of result.stream) {
+      const text = chunk.text();
+      if (text) yield text;
     }
-  }
-
-  getHealth() {
-    return { status: 'ok', model: 'gemini-2.5-flash', timestamp: new Date().toISOString() };
   }
 }

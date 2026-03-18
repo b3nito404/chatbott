@@ -12,7 +12,7 @@ interface Handlers {
 
 export async function streamMessage(
   message:  string,
-  history:  { role: 'user' | 'assistant'; content: string }[],
+  history:  Array<{ role: 'user' | 'assistant'; content: string }>,
   handlers: Handlers,
   _cid?:    string,
   signal?:  AbortSignal,
@@ -21,9 +21,9 @@ export async function streamMessage(
 
   try {
     const res = await fetch(`${API}/chat/stream`, {
-      method: 'POST',
+      method:  'POST',
       headers: { 'Content-Type': 'application/json' },
-      body:   JSON.stringify({ message, history }),
+      body:    JSON.stringify({ message, history }),
       signal,
     });
 
@@ -48,8 +48,9 @@ export async function streamMessage(
         if (!line.startsWith('data: ')) continue;
         try {
           const json = JSON.parse(line.slice(6));
-          if (json.done) { onDone(); return; }
-          if (json.text) onChunk(json.text);
+          if (json.done)  { onDone();          return; }
+          if (json.error) { onError(json.error); return; }
+          if (json.text)  { onChunk(json.text); }
         } catch {}
       }
     }
