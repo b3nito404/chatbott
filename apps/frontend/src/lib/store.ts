@@ -82,7 +82,6 @@ export const useStore = create<Store>()(
 
       setActive: (id) => set({ activeId: id, currentView: 'chat' }),
 
-      // ── FIXED: pure functional update, no stale closure ──
       deleteConversation: (id) => {
         set(s => {
           const next = s.conversations.filter(c => c.id !== id);

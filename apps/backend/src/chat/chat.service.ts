@@ -26,11 +26,22 @@ export class ChatService {
   ): AsyncGenerator<string> {
     const model  = this.genAI.getGenerativeModel({ model: 'gemini-2.5-flash' });
     const chat   = model.startChat({ history });
-    const result = await chat.sendMessageStream(message);
 
+    
+     try {
+    const result = await chat.sendMessageStream(message);
     for await (const chunk of result.stream) {
       const text = chunk.text();
       if (text) yield text;
     }
+  } catch (err: any) {
+    const errorString = JSON.stringify(err);
+
+    if (errorString.includes('429') || errorString.includes('quota')) {
+      yield 'Quota dépassé pour aujourd’hui. Veuillez réessayer plus tard.';
+    } else {
+      yield `Une erreur est survenue : ${errorString}`;
+    }
+  }
   }
 }

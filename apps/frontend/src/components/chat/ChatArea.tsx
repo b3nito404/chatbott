@@ -8,7 +8,7 @@ import { ChatInput }        from "@/components/chat/ChatInput";
 import { GeminiLogoStatic } from "@/components/layout/GeminiLogo";
 
 const GREETINGS: Record<string, string[]> = {
-  morning:   ["Good morning.", "Rise and shine.", "Morning — ready to create?", "Early bird energy.", "Fresh start."],
+  morning:   ["Good morning.", "Rise and shine.", "Morning  ready to create?", "Early bird energy.", "Fresh start."],
   afternoon: ["Good afternoon.", "Afternoon deep dive?", "What are we building today?", "Let's get into it.", "Ready when you are."],
   evening:   ["Good evening.", "Evening thoughts?", "Winding down or firing up?", "Night owl mode.", "The best ideas come at night."],
   night:     ["Burning the midnight oil?", "Still at it?", "Late-night spark.", "Night mode: on.", "The quiet hours are the best."],
